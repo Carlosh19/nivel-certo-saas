@@ -11,6 +11,9 @@ SUPABASE_URL = "https://hzpmzxtpozifbkzjffkq.supabase.co"
 SUPABASE_KEY = "sb_publishable_Nguzd6BG38Ztw4MjhjRZlg_K31XGf1X"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# URL da API em produção (Render)
+API_URL = "https://nivel-certo-saas.onrender.com"
+
 st.set_page_config(page_title="Nível Certo - Sistema", layout="wide")
 
 st.markdown("""
@@ -32,11 +35,36 @@ st.markdown("""
     
     .dash-box { border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; text-align: center; background-color: #ffffff; }
     .dash-title { font-size: 12px; font-weight: bold; color: #2E1A0F; text-transform: uppercase; }
-    .dash-value { font-size: 28px; font-weight: bold; margin: 10px 0; color: #0066cc }
+    .dash-value { font-size: 28px; font-weight: bold; margin: 10px 0; color: #0066cc; }
     .dash-sub { font-size: 12px; color: #666666; }
     .val-green { color: #2e7d32; }
     .val-red { color: #c62828; }
     .val-orange { color: #e65100; }
+
+    /* ESTILIZAÇÃO COMPLETA DAS TABELAS: Fundo Marrom Escuro, Letras Douradas e Conteúdo Centralizado */
+    [data-testid="stDataFrame"] {
+        background-color: #2E1A0F !important;
+        border: 1px solid #D4AF37 !important;
+        border-radius: 8px;
+    }
+    
+    [data-testid="stDataFrame"] th {
+        background-color: #1F1109 !important;
+        color: #D4AF37 !important;
+        text-align: center !important;
+        font-weight: bold !important;
+    }
+    
+    [data-testid="stDataFrame"] td {
+        background-color: #2E1A0F !important;
+        color: #D4AF37 !important;
+        text-align: center !important;
+    }
+    
+    [data-testid="stDataFrame"] div, [data-testid="stDataFrame"] span {
+        text-align: center !important;
+        color: #D4AF37 !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -103,14 +131,10 @@ def gerar_pdf_projeto(proj):
 if st.session_state.usuario is None:
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
-        try: 
-            # Carrega a logo da pasta do projeto (suporta .png ou .jpeg)
-            st.image("Logo.png", use_container_width=True)
+        try: st.image("Logo.png", use_container_width=True)
         except: 
-            try:
-                st.image("Logo.jpeg", use_container_width=True)
-            except:
-                st.warning("Guarde a imagem Logo.png na pasta do projeto.")
+            try: st.image("Logo.jpeg", use_container_width=True)
+            except: pass
                 
         st.title("Gestão Nível Certo")
         email_login = st.text_input("E-mail")
@@ -120,13 +144,10 @@ if st.session_state.usuario is None:
 else:
     # ---------------- BARRA LATERAL (SIDEBAR) ----------------
     with st.sidebar:
-        try: 
-            st.image("Logo.png", use_container_width=True)
+        try: st.image("Logo.png", use_container_width=True)
         except: 
-            try:
-                st.image("Logo.jpeg", use_container_width=True)
-            except:
-                pass
+            try: st.image("Logo.jpeg", use_container_width=True)
+            except: pass
         
         st.markdown("---")
         
@@ -148,11 +169,11 @@ else:
                 st.session_state.update(usuario=None)
                 st.rerun()
 
-    # Buscar Dados da API
+    # BUSCAR DADOS DA API NA NUVEM
     try:
-        clientes = requests.get("http://127.0.0.1:8000/clientes").json()
-        projetos = requests.get("http://127.0.0.1:8000/projetos").json()
-        despesas = requests.get("http://127.0.0.1:8000/despesas").json()
+        clientes = requests.get(f"{API_URL}/clientes").json()
+        projetos = requests.get(f"{API_URL}/projetos").json()
+        despesas = requests.get(f"{API_URL}/despesas").json()
         if isinstance(clientes, dict) and "erro" in clientes: clientes = []
         if isinstance(projetos, dict) and "erro" in projetos: projetos = []
         if isinstance(despesas, dict) and "erro" in despesas: despesas = []
@@ -242,14 +263,14 @@ else:
                 if st.button("Guardar Projeto"):
                     if cliente_nome:
                         cliente_existe = next((c for c in clientes if c['nome'].lower() == cliente_nome.lower()), None)
-                        if not cliente_existe: requests.post("http://127.0.0.1:8000/clientes", json={"nome": cliente_nome, "email": "", "telefone": "", "endereco": ""})
+                        if not cliente_existe: requests.post(f"{API_URL}/clientes", json={"nome": cliente_nome, "email": "", "telefone": "", "endereco": ""})
                         
                         dados_proj = {
                             "id_projeto_txt": id_gerado, "cliente_nome": cliente_nome, "ambiente": ambiente, 
                             "data_inicio": data_inicio, "valor_contrato": valor_c, "valor_recebido": valor_r, 
                             "status_projeto": status_p, "status_pagamento": status_pag
                         }
-                        res_post = requests.post("http://127.0.0.1:8000/projetos", json=dados_proj)
+                        res_post = requests.post(f"{API_URL}/projetos", json=dados_proj)
                         if res_post.status_code == 200 and "erro" not in res_post.json():
                             st.success("Projeto criado!")
                             st.rerun()
@@ -291,7 +312,7 @@ else:
                         "status_projeto": novo_status_obra,
                         "status_pagamento": novo_status_pag
                     }
-                    res_put = requests.put(f"http://127.0.0.1:8000/projetos/{proj_dados['id_projeto_txt']}", json=dados_atualizados)
+                    res_put = requests.put(f"{API_URL}/projetos/{proj_dados['id_projeto_txt']}", json=dados_atualizados)
                     if res_put.status_code == 200:
                         st.success("Projeto atualizado com sucesso!")
                         st.rerun()
@@ -332,7 +353,7 @@ else:
                     "descricao": descricao, "forma_pagamento": forma_pag, "valor_total": v_total, 
                     "status_pagamento": status_pg, "projeto_vinculado": id_proj_salvar
                 }
-                res_post_d = requests.post("http://127.0.0.1:8000/despesas", json=dados_d)
+                res_post_d = requests.post(f"{API_URL}/despesas", json=dados_d)
                 if res_post_d.status_code == 200 and "erro" not in res_post_d.json():
                     st.success("Despesa registada!")
                     st.rerun()
@@ -359,7 +380,7 @@ else:
                 desp_selecionada = st.selectbox("Selecione para excluir", list(opcoes_despesas.keys()))
                 if st.button("Apagar Despesa", type="primary"):
                     id_desp_apagar = opcoes_despesas[desp_selecionada]
-                    requests.delete(f"http://127.0.0.1:8000/despesas/{id_desp_apagar}")
+                    requests.delete(f"{API_URL}/despesas/{id_desp_apagar}")
                     st.success("Apagado.")
                     st.rerun()
             else: st.info("Sem despesas.")
@@ -377,7 +398,7 @@ else:
                 novo_email = st.text_input("E-mail", value=cli_dados.get("email", ""))
                 novo_end = st.text_input("Endereço", value=cli_dados.get("endereco", ""))
                 if st.button("Atualizar Ficha"):
-                    requests.put(f"http://127.0.0.1:8000/clientes/{cli_dados['id']}", json={"nome": cli_selecionado, "email": novo_email, "telefone": novo_tel, "endereco": novo_end})
+                    requests.put(f"{API_URL}/clientes/{cli_dados['id']}", json={"nome": cli_selecionado, "email": novo_email, "telefone": novo_tel, "endereco": novo_end})
                     st.success("Atualizado!")
                     st.rerun()
             with c_view:
@@ -388,7 +409,7 @@ else:
                 cli_del_selecionado = st.selectbox("Selecione para excluir", list(opcoes_cli.keys()), key="del_cli")
                 if st.button("Excluir Cliente", type="primary"):
                     id_para_deletar = opcoes_cli[cli_del_selecionado]['id']
-                    requests.delete(f"http://127.0.0.1:8000/clientes/{id_para_deletar}")
+                    requests.delete(f"{API_URL}/clientes/{id_para_deletar}")
                     st.success("Excluído.")
                     st.rerun()
         else: st.info("Base vazia.")
