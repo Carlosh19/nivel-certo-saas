@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 from supabase import create_client
 
-# Configuração da página
+# Configuração da página (largura total para otimizar mobile)
 st.set_page_config(
     page_title="Gestão Nível Certo", page_icon="🪵", layout="wide"
 )
@@ -22,7 +22,7 @@ def init_supabase():
 supabase = init_supabase()
 
 
-# Função para encontrar a logo automaticamente na pasta (lidando com maiúsculas/minúsculas e extensões)
+# Função para encontrar a logo automaticamente na pasta
 def obter_caminho_logo():
   candidatos = [
       "Logo",
@@ -89,36 +89,33 @@ if not st.session_state.autenticado:
           st.error("Erro ao validar credenciais. Verifique a base de dados.")
 
 else:
-  # --- MENU LATERAL (SIDEBAR) COM LOGO ---
-  caminho_logo = obter_caminho_logo()
-  if caminho_logo:
-    st.sidebar.image(caminho_logo, use_container_width=True)
-  else:
-    st.sidebar.title("Nível Certo")
+  # --- CABEÇALHO SUPERIOR COM LOGO E UTILIZADOR ---
+  col_h1, col_h2 = st.columns([3, 1])
+  with col_h1:
+    caminho_logo = obter_caminho_logo()
+    if caminho_logo:
+      st.image(caminho_logo, width=160)
+    else:
+      st.title("🪵 Nível Certo")
+  with col_h2:
+    st.write(f"👤 **{st.session_state.get('usuario', {}).get('email', 'Carlos')}**")
+    if st.button("Terminar Sessão", use_container_width=True):
+      st.session_state.autenticado = False
+      st.rerun()
 
-  st.sidebar.markdown("---")
+  st.markdown("---")
 
-  menu_opcao = st.sidebar.radio(
-      "Navegação",
-      [
-          "📊 Painel Geral",
-          "🪵 Projetos & Receitas",
-          "💰 Custos & Despesas",
-          "👥 Base de Clientes",
-          "⚙️ Administração",
-      ],
-  )
-
-  st.sidebar.markdown("---")
-  st.sidebar.text(
-      f"Logado: {st.session_state.get('usuario', {}).get('email', 'Carlos')}"
-  )
-  if st.sidebar.button("Terminar Sessão", use_container_width=True):
-    st.session_state.autenticado = False
-    st.rerun()
+  # --- NAVEGAÇÃO POR ABAS NO TOPO (IDEAL PARA MOBILE) ---
+  tab_geral, tab_projetos, tab_custos, tab_clientes, tab_admin = st.tabs([
+      "📊 Painel Geral",
+      "🪵 Projetos & Receitas",
+      "💰 Custos & Despesas",
+      "👥 Base de Clientes",
+      "⚙️ Administração"
+  ])
 
   # --- 1. PAINEL GERAL ---
-  if menu_opcao == "📊 Painel Geral":
+  with tab_geral:
     st.title("📊 Painel Geral - Nível Certo")
     st.write(
         "Indicadores de desempenho e resumo financeiro dos projetos em 100%"
@@ -161,17 +158,17 @@ else:
       st.warning(f"Aviso ao carregar dados do Supabase: {e}")
 
   # --- 2. PROJETOS & RECEITAS ---
-  elif menu_opcao == "🪵 Projetos & Receitas":
+  with tab_projetos:
     st.title("🪵 Gestão de Projetos 3D & Receitas")
     st.write(
         "Registe novos projetos, atualize pagamentos e conclua entregas."
     )
 
-    tab_novo, tab_edita = st.tabs(
+    sub_tab_novo, sub_tab_edita = st.tabs(
         ["➕ Adicionar Novo Projeto", "✏️ Atualizar / Concluir Projeto"]
     )
 
-    with tab_novo:
+    with sub_tab_novo:
       id_gerado = f"NVC-{random.randint(1000, 9999)}"
       with st.form("form_novo_projeto"):
         st.info(f"🔑 Código do Projeto Gerado Automaticamente: **{id_gerado}**")
@@ -218,7 +215,7 @@ else:
           except Exception as err:
             st.error(f"Erro ao guardar projeto: {err}")
 
-    with tab_edita:
+    with sub_tab_edita:
       st.subheader("Atualizar Dados, Pagamentos ou Concluir Projeto")
       try:
         res_p = supabase.table("projetos").select("*").execute()
@@ -318,21 +315,21 @@ else:
       st.info("Tabela de projetos em configuração.")
 
   # --- 3. CUSTOS & DESPESAS ---
-  elif menu_opcao == "💰 Custos & Despesas":
+  with tab_custos:
     st.title("💰 Controlo de Custos & Despesas e Mão de Obra")
     st.write(
         "Registe insumos e acompanhe os pagamentos da mão de obra da marcenaria"
         " (Entrada + Quitação na Entrega)."
     )
 
-    tab_cad_desp, tab_edit_desp = st.tabs(
+    sub_tab_cad_desp, sub_tab_edit_desp = st.tabs(
         [
             "➕ Registar Despesa / Mão de Obra",
             "✏️ Atualizar Status / Pagamento da Mão de Obra",
         ]
     )
 
-    with tab_cad_desp:
+    with sub_tab_cad_desp:
       with st.form("form_despesa"):
         st.subheader("Registo de Custos Operacionais e Mão de Obra")
         c_desc = st.text_input(
@@ -386,7 +383,7 @@ else:
           except Exception as e:
             st.error(f"Erro ao guardar despesa: {e}")
 
-    with tab_edit_desp:
+    with sub_tab_edit_desp:
       st.subheader(
           "Atualizar Pagamento da Mão de Obra (Entrada vs Quitação Final)"
       )
@@ -488,15 +485,15 @@ else:
       st.warning(f"Erro ao consultar a tabela 'despesas': {e}")
 
   # --- 4. BASE DE CLIENTES ---
-  elif menu_opcao == "👥 Base de Clientes":
+  with tab_clientes:
     st.title("👥 Base de Clientes")
     st.write("Gestão de contactos, moradas e histórico de atendimento.")
 
-    tab_cad_cli, tab_edit_cli = st.tabs(
+    sub_tab_cad_cli, sub_tab_edit_cli = st.tabs(
         ["➕ Cadastrar Novo Cliente", "✏️ Editar / Atualizar Cliente"]
     )
 
-    with tab_cad_cli:
+    with sub_tab_cad_cli:
       with st.form("form_cliente"):
         nome_cli = st.text_input("Nome Completo")
         tel_cli = st.text_input("Telefone / WhatsApp")
@@ -517,7 +514,7 @@ else:
           except Exception as e:
             st.error(f"Erro ao cadastrar cliente: {e}")
 
-    with tab_edit_cli:
+    with sub_tab_edit_cli:
       st.subheader("Editar Informações de um Cliente")
       try:
         res_cli_all = supabase.table("clientes").select("*").execute()
@@ -586,7 +583,7 @@ else:
       st.info("Tabela 'clientes' pendente de criação no Supabase.")
 
   # --- 5. ADMINISTRAÇÃO ---
-  elif menu_opcao == "⚙️ Administração":
+  with tab_admin:
     st.title("⚙️ Administração do Sistema")
     st.write("Gestão de utilizadores e acessos.")
 
