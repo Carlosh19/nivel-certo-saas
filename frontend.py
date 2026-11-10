@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 from supabase import create_client
 
-# Configuração da página (largura total para otimizar mobile)
+# Configuração da página
 st.set_page_config(
     page_title="Gestão Nível Certo", page_icon="🪵", layout="wide"
 )
@@ -89,7 +89,7 @@ if not st.session_state.autenticado:
           st.error("Erro ao validar credenciais. Verifique a base de dados.")
 
 else:
-  # --- CABEÇALHO SUPERIOR COM LOGO E UTILIZADOR ---
+  # --- CABEÇALHO SUPERIOR (APENAS COM A LOGO) ---
   col_h1, col_h2 = st.columns([3, 1])
   with col_h1:
     caminho_logo = obter_caminho_logo()
@@ -97,15 +97,10 @@ else:
       st.image(caminho_logo, width=160)
     else:
       st.title("🪵 Nível Certo")
-  with col_h2:
-    st.write(f"👤 **{st.session_state.get('usuario', {}).get('email', 'Carlos')}**")
-    if st.button("Terminar Sessão", use_container_width=True):
-      st.session_state.autenticado = False
-      st.rerun()
 
   st.markdown("---")
 
-  # --- NAVEGAÇÃO POR ABAS NO TOPO (IDEAL PARA MOBILE) ---
+  # --- NAVEGAÇÃO POR ABAS NO TOPO ---
   tab_geral, tab_projetos, tab_custos, tab_clientes, tab_admin = st.tabs([
       "📊 Painel Geral",
       "🪵 Projetos & Receitas",
@@ -618,3 +613,18 @@ else:
         st.info("Apenas o administrador padrão configurado.")
     except Exception:
       st.info("Tabela 'usuarios' pronta para uso.")
+
+  # ==========================================
+  # --- RODAPÉ GLOBAL (NO FIM DA PÁGINA) ---
+  # ==========================================
+  st.markdown("---")
+  col_ft1, col_ft2 = st.columns([3, 1])
+  with col_ft1:
+    st.write(
+        f"👤 Utilizador Conectado:"
+        f" **{st.session_state.get('usuario', {}).get('email', 'Carlos')}**"
+    )
+  with col_ft2:
+    if st.button("Terminar Sessão", use_container_width=True):
+      st.session_state.autenticado = False
+      st.rerun()
