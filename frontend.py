@@ -9,13 +9,16 @@ st.set_page_config(
     page_title="Gestão Nível Certo", page_icon="🪵", layout="wide"
 )
 
-# --- CSS PARA OCULTAR O MENU, RODAPÉ E ÍCONE FLUTUANTE DO STREAMLIT ---
+# --- CSS PARA OCULTAR O MENU, RODAPÉ E QUALQUER SELO DE AUTOR/GITHUB ---
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     div[data-testid="stToolbar"] {visibility: hidden; display: none;}
+    div[data-testid="stDecoration"] {visibility: hidden; display: none;}
+    #viewerBadge {visibility: hidden; display: none;}
+    .viewerBadge_container__1QSob {visibility: hidden; display: none;}
     </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
