@@ -1,3 +1,4 @@
+import random
 import pandas as pd
 import streamlit as st
 from supabase import create_client
@@ -103,17 +104,21 @@ else:
   # --- 2. PROJETOS & RECEITAS ---
   elif menu_opcao == "🪵 Projetos & Receitas":
     st.title("🪵 Gestão de Projetos 3D & Receitas")
-    st.write("Registe novos projetos, defina a marcenaria responsável, atualize valores e status.")
+    st.write("Registe novos projetos. O código do projeto é gerado automaticamente.")
 
     with st.expander("➕ Adicionar Novo Projeto", expanded=True):
+      # Geração automática de ID único (ex: NVC-4829)
+      id_gerado = f"NVC-{random.randint(1000, 9999)}"
+      
       with st.form("form_novo_projeto"):
+        st.info(f"🔑 Código do Projeto Gerado Automaticamente: **{id_gerado}**")
+        
         col1, col2 = st.columns(2)
         with col1:
-          id_proj = st.text_input("Código do Projeto (ex: NVC-8162)")
           cliente = st.text_input("Nome do Cliente")
           ambiente = st.text_input("Ambiente (ex: Cozinha, Closet)")
         with col2:
-          marcenaria = st.text_input("Marcenaria / Marceneiro Responsável (ex: Marcenaria Silva / João)")
+          marcenaria = st.text_input("Marcenaria / Marceneiro Responsável")
           valor_c = st.number_input("Valor do Contrato (R$)", min_value=0.0, step=100.0)
           valor_r = st.number_input("Valor Recebido (R$)", min_value=0.0, step=100.0)
         
@@ -123,7 +128,7 @@ else:
         if submitted:
           try:
             supabase.table("projetos").insert({
-                "id_projeto_txt": id_proj,
+                "id_projeto_txt": id_gerado,
                 "cliente_nome": cliente,
                 "ambiente": ambiente,
                 "marcenaria": marcenaria,
@@ -131,7 +136,7 @@ else:
                 "valor_recebido": valor_r,
                 "status_projeto": status
             }).execute()
-            st.success("Projeto guardado com sucesso!")
+            st.success(f"Projeto {id_gerado} guardado com sucesso!")
             st.rerun()
           except Exception as err:
             st.error(f"Erro ao guardar projeto: {err}")
