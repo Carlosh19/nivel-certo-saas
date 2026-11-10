@@ -147,7 +147,6 @@ else:
         res_p = supabase.table("projetos").select("*").execute()
         if res_p.data:
           df_p = pd.DataFrame(res_p.data)
-          # Criar lista de seleção com ID e Cliente
           lista_projetos = [f"{row['id_projeto_txt']} - {row['cliente_nome']} ({row['ambiente']})" for index, row in df_p.iterrows()]
           escolha_p = st.selectbox("Selecione o Projeto para Editar", lista_projetos)
           
@@ -201,32 +200,96 @@ else:
     except Exception:
       st.info("Tabela de projetos em configuração.")
 
-  # --- 3. CUSTOS & DESPESAS ---
+  # --- 3. CUSTOS & DESPESAS (COM GESTÃO DE MÃO DE OBRA POR ETAPAS) ---
   elif menu_opcao == "💰 Custos & Despesas":
-    st.title("💰 Controlo de Custos & Despesas")
-    st.write("Registo do valor total de insumos e custos operacionais.")
+    st.title("💰 Controlo de Custos & Despesas e Mão de Obra")
+    st.write("Registe insumos e acompanhe os pagamentos da mão de obra da marcenaria (Entrada + Quitação na Entrega).")
 
-    with st.expander("➕ Registar Nova Despesa / Custo"):
+    tab_cad_desp, tab_edit_desp = st.tabs(["➕ Registar Despesa / Mão de Obra", "✏️ Atualizar Status / Pagamento da Mão de Obra"])
+
+    with tab_cad_desp:
       with st.form("form_despesa"):
-        descricao = st.text_input("Descrição do Custo / Insumos (ex: Insumos Projeto Cozinha Gabriel)")
-        valor_custo = st.number_input("Valor Total (R$)", min_value=0.0, step=50.0)
-        data_custo = st.date_input("Data")
+        st.subheader("Registo de Custos Operacionais e Mão de Obra")
+        c_desc = st.text_input("Descrição (ex: Insumos + Mão de Obra Cozinha Gabriel)")
+        
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+          c_val_total = st.number_input("Valor Total (Materiais/Insumos) (R$)", min_value=0.0, step=50.0)
+          c_mao_obra = st.number_input("Valor Total da Mão de Obra do Marceneiro (R$)", min_value=0.0, step=50.0)
+        with col_d2:
+          c_projeto = st.text_input("Projeto Vinculado (ex: NVC-8161)")
+          c_status_pag = st.selectbox("Status Pagamento Mão de Obra", ["Pendente", "Parcial (50% Entrada Pago)", "Quitado / 100% Pago"])
+        
+        c_data = st.date_input("Data do Registo")
+        c_forma = st.text_input("Forma de Pagamento (ex: PIX, Cartão, Transferência)")
 
-        btn_custo = st.form_submit_button("Guardar Despesa")
+        btn_custo = st.form_submit_button("Guardar Registo de Despesa")
         if btn_custo:
           try:
             supabase.table("despesas").insert({
-                "descricao": descricao,
-                "valor": valor_custo,
-                "data": str(data_custo)
+                "descricao": c_desc,
+                "valor_total": c_val_total,
+                "mao_de_obra": c_mao_obra,
+                "projeto_vinculado": c_projeto,
+                "status_pagamento": c_status_pag,
+                "forma_pagamento": c_forma,
+                "data_lancamento": str(c_data)
             }).execute()
-            st.success("Despesa registada com sucesso!")
+            st.success("Registo de despesa e mão de obra guardado com sucesso!")
             st.rerun()
           except Exception as e:
             st.error(f"Erro ao guardar despesa: {e}")
 
+    with tab_edit_desp:
+      st.subheader("Atualizar Pagamento da Mão de Obra (Entrada vs Quitação Final)")
+      try:
+        res_d_all = supabase.table("despesas").select("*").execute()
+        if res_d_all.data:
+          df_d = pd.DataFrame(res_d_all.data)
+          lista_despesas = [f"ID {row['id']} - {row.get('descricao', 'Sem Descrição')} (Proj: {row.get('projeto_vinculado', 'N/A')})" for index, row in df_d.iterrows()]
+          escolha_desp = st.selectbox("Selecione o Registo para Atualizar", lista_despesas)
+          
+          if escolha_desp:
+            id_desp_sel = int(escolha_desp.split(" - ")[0].replace("ID ", ""))
+            desp_atual = df_d[df_d["id"] == id_desp_sel].iloc[0]
+            
+            with st.form("form_edita_despesa"):
+              ed_c1, ed_c2 = st.columns(2)
+              with ed_c1:
+                e_desc = st.text_input("Descrição", value=str(desp_atual.get("descricao", "")))
+                e_proj = st.text_input("Projeto Vinculado", value=str(desp_atual.get("projeto_vinculado", "")))
+                e_mao = st.number_input("Valor Total da Mão de Obra (R$)", value=float(desp_atual.get("mao_de_obra", 0.0)), step=50.0)
+              with ed_c2:
+                e_val_tot = st.number_input("Valor Insumos (R$)", value=float(desp_atual.get("valor_total", 0.0)), step=50.0)
+                e_forma = st.text_input("Forma de Pagamento", value=str(desp_atual.get("forma_pagamento", "")))
+                
+                status_pag_opcoes = ["Pendente", "Parcial (50% Entrada Pago)", "Quitado / 100% Pago"]
+                status_db = desp_atual.get("status_pagamento", "Pendente")
+                idx_sp = status_pag_opcoes.index(status_db) if status_db in status_pag_opcoes else 0
+                e_status_pag = st.selectbox("Status Pagamento Mão de Obra", status_pag_opcoes, index=idx_sp)
+
+              btn_salva_desp = st.form_submit_button("Atualizar Status e Pagamento")
+              if btn_salva_desp:
+                try:
+                  supabase.table("despesas").update({
+                      "descricao": e_desc,
+                      "projeto_vinculado": e_proj,
+                      "mao_de_obra": e_mao,
+                      "valor_total": e_val_tot,
+                      "forma_pagamento": e_forma,
+                      "status_pagamento": e_status_pag
+                  }).eq("id", id_desp_sel).execute()
+                  st.success("Status de pagamento da mão de obra atualizado com sucesso!")
+                  st.rerun()
+                except Exception as err_d:
+                  st.error(f"Erro ao atualizar despesa: {err_d}")
+        else:
+          st.info("Nenhum registo de despesa encontrado para editar.")
+      except Exception as ex_d:
+        st.warning(f"Erro ao carregar despesas: {ex_d}")
+
     st.markdown("---")
-    st.subheader("Registo de Despesas")
+    st.subheader("Lista Geral de Despesas e Mão de Obra")
     try:
       res_c = supabase.table("despesas").select("*").execute()
       if res_c.data:
