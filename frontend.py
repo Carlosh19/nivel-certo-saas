@@ -100,25 +100,27 @@ if not st.session_state.autenticado:
           st.error("Erro ao validar credenciais. Verifique a base de dados.")
 
 else:
-  # --- CABEÇALHO SUPERIOR (APENAS COM A LOGO) ---
-  col_h1, col_h2 = st.columns([3, 1])
-  with col_h1:
+  # --- CABEÇALHO LADO A LADO: LOGO + ABAS DE NAVEGAÇÃO ---
+  col_logo, col_tabs = st.columns([1, 4])
+
+  with col_logo:
     caminho_logo = obter_caminho_logo()
     if caminho_logo:
-      st.image(caminho_logo, width=160)
+      st.image(caminho_logo, width=180)
     else:
-      st.title("🪵 Nível Certo")
+      st.markdown("### 🪵 Nível Certo")
+
+  with col_tabs:
+    # Navegação por abas ao lado da logo
+    tab_geral, tab_projetos, tab_custos, tab_clientes, tab_admin = st.tabs([
+        "📊 Painel Geral",
+        "🪵 Projetos & Receitas",
+        "💰 Custos & Despesas",
+        "👥 Base de Clientes",
+        "⚙️ Administração",
+    ])
 
   st.markdown("---")
-
-  # --- NAVEGAÇÃO POR ABAS NO TOPO ---
-  tab_geral, tab_projetos, tab_custos, tab_clientes, tab_admin = st.tabs([
-      "📊 Painel Geral",
-      "🪵 Projetos & Receitas",
-      "💰 Custos & Despesas",
-      "👥 Base de Clientes",
-      "⚙️ Administração",
-  ])
 
   # --- 1. PAINEL GERAL ---
   with tab_geral:
