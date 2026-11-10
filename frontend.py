@@ -26,11 +26,19 @@ if "autenticado" not in st.session_state:
 
 # --- TELA DE LOGIN ---
 if not st.session_state.autenticado:
-  st.markdown("<h1 style='text-align: center;'>Gestão Nível Certo</h1>", unsafe_allow_html=True)
-  st.markdown("<h3 style='text-align: center; color: gray;'>Painel de Controlo Exclusivo - 100% MDF</h3>", unsafe_allow_html=True)
-  
-  col1, col2, col3 = st.columns([1, 2, 1])
-  with col2:
+  col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+  with col_l2:
+    # Exibição da Logo na Tela de Login (ficheiro nomeado como 'logo')
+    try:
+      st.image("logo.png", use_container_width=True)
+    except Exception:
+      try:
+        st.image("logo.jpg", use_container_width=True)
+      except Exception:
+        st.markdown("<h1 style='text-align: center;'>🪵 NÍVEL CERTO</h1>", unsafe_allow_html=True)
+
+    st.markdown("<h3 style='text-align: center; color: gray;'>Gestão de Projetos 3D e Móveis Planejados</h3>", unsafe_allow_html=True)
+    
     email_input = st.text_input("E-mail", value="carlos.diference@gmail.com")
     senha_input = st.text_input("Palavra-passe", type="password")
 
@@ -57,8 +65,16 @@ if not st.session_state.autenticado:
           st.error("Erro ao validar credenciais. Verifique a base de dados.")
 
 else:
-  # --- MENU LATERAL (SIDEBAR) ---
-  st.sidebar.title("Menu Nível Certo")
+  # --- MENU LATERAL (SIDEBAR) COM LOGO ---
+  try:
+    st.sidebar.image("logo.png", use_container_width=True)
+  except Exception:
+    try:
+      st.sidebar.image("logo.jpg", use_container_width=True)
+    except Exception:
+      st.sidebar.title("Nível Certo")
+
+  st.sidebar.markdown("---")
   
   menu_opcao = st.sidebar.radio(
       "Navegação",
@@ -200,7 +216,7 @@ else:
     except Exception:
       st.info("Tabela de projetos em configuração.")
 
-  # --- 3. CUSTOS & DESPESAS (COM GESTÃO DE MÃO DE OBRA POR ETAPAS) ---
+  # --- 3. CUSTOS & DESPESAS ---
   elif menu_opcao == "💰 Custos & Despesas":
     st.title("💰 Controlo de Custos & Despesas e Mão de Obra")
     st.write("Registe insumos e acompanhe os pagamentos da mão de obra da marcenaria (Entrada + Quitação na Entrega).")
