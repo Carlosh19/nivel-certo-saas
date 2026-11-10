@@ -9,6 +9,17 @@ st.set_page_config(
     page_title="Gestão Nível Certo", page_icon="🪵", layout="wide"
 )
 
+# --- CSS PARA OCULTAR O MENU, RODAPÉ E ÍCONE FLUTUANTE DO STREAMLIT ---
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    div[data-testid="stToolbar"] {visibility: hidden; display: none;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 # Credenciais do Supabase
 SUPABASE_URL = "https://hzpmzxtpozifbkzjffkq.supabase.co"
 SUPABASE_KEY = "sb_publishable_Nguzd6BG38Ztw4MjhjRZlg_K31XGf1X"
@@ -106,7 +117,7 @@ else:
       "🪵 Projetos & Receitas",
       "💰 Custos & Despesas",
       "👥 Base de Clientes",
-      "⚙️ Administração"
+      "⚙️ Administração",
   ])
 
   # --- 1. PAINEL GERAL ---
