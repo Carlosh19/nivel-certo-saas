@@ -30,10 +30,10 @@ if not st.session_state.autenticado:
   with col_l2:
     # Exibição da Logo na Tela de Login (ficheiro nomeado como 'logo')
     try:
-      st.image("logo.jpeg", use_container_width=True)
+      st.image("logo", use_container_width=True)
     except Exception:
       try:
-        st.image("logo.jpeg", use_container_width=True)
+        st.image("logo", use_container_width=True)
       except Exception:
         st.markdown("<h1 style='text-align: center;'>🪵 NÍVEL CERTO</h1>", unsafe_allow_html=True)
 
@@ -67,10 +67,10 @@ if not st.session_state.autenticado:
 else:
   # --- MENU LATERAL (SIDEBAR) COM LOGO ---
   try:
-    st.sidebar.image("logo.jpeg", use_container_width=True)
+    st.sidebar.image("logo", use_container_width=True)
   except Exception:
     try:
-      st.sidebar.image("logo.jpeg", use_container_width=True)
+      st.sidebar.image("logo", use_container_width=True)
     except Exception:
       st.sidebar.title("Nível Certo")
 
