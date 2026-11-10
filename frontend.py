@@ -146,6 +146,7 @@ else:
       st.info("Tabela de projetos vazia ou em configuração.")
 
   # --- 3. CUSTOS & DESPESAS ---
+  # --- 3. CUSTOS & DESPESAS ---
   elif menu_opcao == "💰 Custos & Despesas":
     st.title("💰 Controlo de Custos & Despesas")
     st.write("Registo de insumos, chapas de MDF, fitas de borda, ferragens e montagem.")
@@ -157,30 +158,30 @@ else:
         valor_custo = st.number_input("Valor (R$)", min_value=0.0, step=50.0)
         data_custo = st.date_input("Data")
 
-        btn_custo = st.form_submit_button("Guardar Custo")
+        btn_custo = st.form_submit_button("Guardar Despesa")
         if btn_custo:
           try:
-            supabase.table("custos").insert({
+            supabase.table("despesas").insert({
                 "descricao": descricao,
                 "categoria": categoria,
                 "valor": valor_custo,
                 "data": str(data_custo)
             }).execute()
-            st.success("Despesa registada com sucesso!")
+            st.success("Despesa registada com sucesso na tabela 'despesas'!")
             st.rerun()
           except Exception as e:
-            st.error(f"Erro ao guardar despesa (verifique se a tabela 'custos' existe no Supabase): {e}")
+            st.error(f"Erro ao guardar despesa: {e}")
 
     st.markdown("---")
     st.subheader("Registo de Custos")
     try:
-      res_c = supabase.table("custos").select("*").execute()
+      res_c = supabase.table("despesas").select("*").execute()
       if res_c.data:
         st.dataframe(pd.DataFrame(res_c.data), use_container_width=True)
       else:
-        st.info("Nenhum custo registado.")
-    except Exception:
-      st.info("Tabela 'custos' ainda não criada no Supabase.")
+        st.info("Nenhuma despesa registada ainda.")
+    except Exception as e:
+      st.warning(f"Erro ao consultar a tabela 'despesas': {e}")
 
   # --- 4. BASE DE CLIENTES ---
   elif menu_opcao == "👥 Base de Clientes":
