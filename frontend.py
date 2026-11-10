@@ -134,7 +134,7 @@ else:
             st.success("Projeto guardado com sucesso!")
             st.rerun()
           except Exception as err:
-            st.error(f"Erro ao guardar projeto (certifique-se de que a coluna 'marcenaria' existe na tabela 'projetos' no Supabase): {err}")
+            st.error(f"Erro ao guardar projeto: {err}")
 
     st.markdown("---")
     st.subheader("Projetos Existentes")
@@ -151,13 +151,12 @@ else:
   # --- 3. CUSTOS & DESPESAS ---
   elif menu_opcao == "💰 Custos & Despesas":
     st.title("💰 Controlo de Custos & Despesas")
-    st.write("Registo de insumos, chapas de MDF, fitas de borda, ferragens e montagem.")
+    st.write("Registo do valor total de insumos e custos operacionais.")
 
     with st.expander("➕ Registar Nova Despesa / Custo"):
       with st.form("form_despesa"):
-        descricao = st.text_input("Descrição do Custo (ex: Chapas MDF Branco TX 15mm)")
-        categoria = st.selectbox("Categoria", ["Chapas MDF", "Fita de Borda", "Ferragens", "Mão de Obra / Montagem", "Outros"])
-        valor_custo = st.number_input("Valor (R$)", min_value=0.0, step=50.0)
+        descricao = st.text_input("Descrição do Custo / Insumos (ex: Insumos Projeto Cozinha Gabriel)")
+        valor_custo = st.number_input("Valor Total (R$)", min_value=0.0, step=50.0)
         data_custo = st.date_input("Data")
 
         btn_custo = st.form_submit_button("Guardar Despesa")
@@ -165,7 +164,6 @@ else:
           try:
             supabase.table("despesas").insert({
                 "descricao": descricao,
-                "categoria": categoria,
                 "valor": valor_custo,
                 "data": str(data_custo)
             }).execute()
