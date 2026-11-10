@@ -92,18 +92,18 @@ else:
         st.metric(label="Valor Já Recebido", value=f"R$ {recebido_total:,.2f}")
 
       st.markdown("---")
-      st.subheader("Lista de Projetos Recentes")
+      st.subheader("Projetos Recentes (com Marcenaria Responsável)")
       if not df_proj.empty:
         st.dataframe(df_proj, use_container_width=True)
       else:
         st.info("Nenhum projeto registado ainda.")
     except Exception as e:
-      st.warning("Aviso: Conectado ao Supabase, mas as tabelas ainda precisam de estar criadas para exibir os indicadores.")
+      st.warning(f"Aviso ao carregar dados do Supabase: {e}")
 
   # --- 2. PROJETOS & RECEITAS ---
   elif menu_opcao == "🪵 Projetos & Receitas":
     st.title("🪵 Gestão de Projetos 3D & Receitas")
-    st.write("Registe novos projetos, atualize valores e acompanhe o status de execução.")
+    st.write("Registe novos projetos, defina a marcenaria responsável, atualize valores e status.")
 
     with st.expander("➕ Adicionar Novo Projeto", expanded=True):
       with st.form("form_novo_projeto"):
@@ -113,9 +113,11 @@ else:
           cliente = st.text_input("Nome do Cliente")
           ambiente = st.text_input("Ambiente (ex: Cozinha, Closet)")
         with col2:
+          marcenaria = st.text_input("Marcenaria / Marceneiro Responsável (ex: Marcenaria Silva / João)")
           valor_c = st.number_input("Valor do Contrato (R$)", min_value=0.0, step=100.0)
           valor_r = st.number_input("Valor Recebido (R$)", min_value=0.0, step=100.0)
-          status = st.selectbox("Status do Projeto", ["Aguardando Insumos", "Em Fabricação", "Em Montagem", "Concluído"])
+        
+        status = st.selectbox("Status do Projeto", ["Aguardando Insumos", "Em Fabricação", "Em Montagem", "Concluído"])
         
         submitted = st.form_submit_button("Guardar Projeto")
         if submitted:
@@ -124,14 +126,15 @@ else:
                 "id_projeto_txt": id_proj,
                 "cliente_nome": cliente,
                 "ambiente": ambiente,
+                "marcenaria": marcenaria,
                 "valor_contrato": valor_c,
                 "valor_recebido": valor_r,
                 "status_projeto": status
             }).execute()
-            st.success("Projeto guardado com sucesso no Supabase!")
+            st.success("Projeto guardado com sucesso!")
             st.rerun()
           except Exception as err:
-            st.error(f"Erro ao guardar projeto: {err}")
+            st.error(f"Erro ao guardar projeto (certifique-se de que a coluna 'marcenaria' existe na tabela 'projetos' no Supabase): {err}")
 
     st.markdown("---")
     st.subheader("Projetos Existentes")
@@ -145,7 +148,6 @@ else:
     except Exception:
       st.info("Tabela de projetos vazia ou em configuração.")
 
-  # --- 3. CUSTOS & DESPESAS ---
   # --- 3. CUSTOS & DESPESAS ---
   elif menu_opcao == "💰 Custos & Despesas":
     st.title("💰 Controlo de Custos & Despesas")
@@ -167,13 +169,13 @@ else:
                 "valor": valor_custo,
                 "data": str(data_custo)
             }).execute()
-            st.success("Despesa registada com sucesso na tabela 'despesas'!")
+            st.success("Despesa registada com sucesso!")
             st.rerun()
           except Exception as e:
             st.error(f"Erro ao guardar despesa: {e}")
 
     st.markdown("---")
-    st.subheader("Registo de Custos")
+    st.subheader("Registo de Despesas")
     try:
       res_c = supabase.table("despesas").select("*").execute()
       if res_c.data:
@@ -207,7 +209,7 @@ else:
             st.success("Cliente cadastrado com sucesso!")
             st.rerun()
           except Exception as e:
-            st.error(f"Erro ao cadastrar cliente (verifique a tabela 'clientes' no Supabase): {e}")
+            st.error(f"Erro ao cadastrar cliente: {e}")
 
     st.markdown("---")
     st.subheader("Clientes Cadastrados")
@@ -223,7 +225,7 @@ else:
   # --- 5. ADMINISTRAÇÃO ---
   elif menu_opcao == "⚙️ Administração":
     st.title("⚙️ Administração do Sistema")
-    st.write("Gestão de utilizadores, logins de acesso (como sócios/parceiros) e parâmetros.")
+    st.write("Gestão de utilizadores e acessos.")
 
     with st.expander("➕ Adicionar Novo Utilizador / Sócio ao Sistema"):
       with st.form("form_usuario"):
@@ -242,7 +244,7 @@ else:
             st.success(f"Utilizador {novo_email} criado com sucesso!")
             st.rerun()
           except Exception as e:
-            st.error(f"Erro ao criar utilizador (verifique se a tabela 'usuarios' existe no Supabase): {e}")
+            st.error(f"Erro ao criar utilizador: {e}")
 
     st.markdown("---")
     st.subheader("Utilizadores com Acesso ao Sistema")
